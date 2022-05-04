@@ -1,10 +1,12 @@
+LocationOrigin = (window.location.protocol + "//" + window.location.hostname) + (window.location.port ? ":" + window.location.port : "");
+
 SolidusPaypalBraintree = {
   APPLE_PAY_API_VERSION: 1,
 
   config: {
     paths: {
-      clientTokens: Spree.pathFor('solidus_paypal_braintree/client_token'),
-      transactions: Spree.pathFor('solidus_paypal_braintree/transactions')
+      clientTokens: LocationOrigin + '/solidus_paypal_braintree/client_token',
+      transactions: LocationOrigin + '/solidus_paypal_braintree/transactions'
     },
 
     // Override to provide your own error messages.
