@@ -11,8 +11,8 @@
     amount: "<%= current_order.total %>",
     shippingContact: {
       emailAddress: '<%= current_order.email %>',
-      givenName: '<%= address.firstname %>',
-      familyName: '<%= address.lastname %>',
+      givenName: '<%= current_order.user.first_name %>',
+      familyName: '<%= current_order.user.last_name %>',
       phoneNumber: '<%= address.phone %>',
       addressLines: ['<%= address.address1 %>','<%= address.address2 %>'],
       locality: '<%= address.city %>',

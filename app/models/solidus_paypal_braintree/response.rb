@@ -19,7 +19,7 @@ module SolidusPaypalBraintree
       private
 
       def build_success(result)
-        transaction = result.transaction
+        transaction = result.transaction || result.subscription.transactions.first
         new(true, transaction.status, {}, response_options(transaction))
       end
 

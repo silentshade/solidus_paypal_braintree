@@ -95,23 +95,75 @@ module SolidusPaypalBraintree
       }
     end
 
+    # Call either purchase or create subscription
+    #
+    # @api public
+    # @param money_cents [Number, String] amount to authorize
+    # @param payment_source [Source] payment source
+    # @param gateway_options [Hash]
+    #   extra options to send along. e.g.: device data for fraud prevention
+    # @return [Response]
+    def purchase(money_cents, payment_source, gateway_options)
+      decreased_amount = money_cents
+      responses = []
+      plan_ids = line_items_with_subscription(gateway_options).pluck(:braintree_plan_id)
+      if plan_ids.any?
+        decreased_amount = decrease_amount(gateway_options, money_cents)
+        responses.push create_subscriptions(payment_source, gateway_options, plan_ids)
+      end
+      responses.push call_purchase(decreased_amount, payment_source, gateway_options)
+      responses.last # default solidus UI supports only 1 response for now
+    end
+
     # Create a payment and submit it for settlement all at once.
     #
     # @api public
     # @param money_cents [Number, String] amount to authorize
-    # @param source [Source] payment source
-    # @params gateway_options [Hash]
+    # @param payment_source [Source] payment source
+    # @param gateway_options [Hash]
     #   extra options to send along. e.g.: device data for fraud prevention
     # @return [Response]
-    def purchase(money_cents, source, gateway_options)
+    def call_purchase(money_cents, payment_source, gateway_options)
       protected_request do
         result = braintree.transaction.sale(
           amount: dollars(money_cents),
-          **transaction_options(source, gateway_options, submit_for_settlement: true)
+          **transaction_options(payment_source, gateway_options, submit_for_settlement: true)
         )
 
         Response.build(result)
       end
+    end
+
+    def create_subscriptions(payment_source, _gateway_options, plan_ids)
+      responses = []
+      plan_ids.each do |plan_id|
+        sleep 2
+        params = { plan_id: plan_id }
+
+        if payment_source.token
+          params[:payment_method_token] = payment_source.token
+        else
+          params[:payment_method_nonce] = payment_source.nonce
+        end
+        protected_request do
+          result = braintree.subscription.create(**params)
+          responses.push Response.build(result)
+        end
+      end
+      responses
+    end
+
+    def line_items_with_subscription(gateway_options)
+      gateway_options[:originator]&.order&.line_items&.with_installment_plan
+    end
+
+    def decrease_amount(gateway_options, money_cents)
+      plans_amount = line_items_with_subscription(gateway_options).sum do |li|
+        li.price + (BigDecimal(li.child_registration.add_ons_child_registrations.sum(&:price)) rescue 0)
+      end
+      return money_cents unless plans_amount&.positive?
+
+      money_cents - ::Spree::Money.new(plans_amount, { currency: 'USD' }).money.cents
     end
 
     # Authorize a payment to be captured later.

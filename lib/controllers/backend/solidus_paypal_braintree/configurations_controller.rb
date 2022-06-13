@@ -33,6 +33,7 @@ module SolidusPaypalBraintree
           :venmo,
           :credit_card,
           :three_d_secure,
+          :subscriptions,
           :preferred_paypal_button_locale,
           :preferred_paypal_button_color,
           :preferred_paypal_button_shape,
