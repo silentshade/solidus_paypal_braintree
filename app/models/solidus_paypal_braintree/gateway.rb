@@ -419,7 +419,7 @@ module SolidusPaypalBraintree
         params[:shipping] = braintree_shipping_address(options)
       end
 
-      if source.credit_card?
+      if source.credit_card? && ::Spree::Config.billing_address_required
         params[:billing] = braintree_billing_address(options)
       end
 
