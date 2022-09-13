@@ -11,4 +11,8 @@ SolidusPaypalBraintree::Engine.routes.draw do
       post :update
     end
   end
+
+  resource :webhook, only: [] do
+    post :notify
+  end
 end

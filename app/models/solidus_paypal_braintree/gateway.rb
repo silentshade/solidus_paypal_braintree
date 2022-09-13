@@ -106,11 +106,11 @@ module SolidusPaypalBraintree
     def purchase(money_cents, payment_source, gateway_options)
       decreased_amount = money_cents
       responses = []
-      plan_ids = line_items_with_subscription(gateway_options).map(&:braintree_plan_id).map(&:presence).compact
-      if plan_ids.any?
-        decreased_amount = decrease_amount(gateway_options, money_cents)
-        responses.push create_subscriptions(payment_source, gateway_options, plan_ids)
-      end
+      # plan_ids = line_items_with_subscription(gateway_options).map(&:braintree_plan_id).map(&:presence).compact
+      # if plan_ids.any?
+      #   decreased_amount = decrease_amount(gateway_options, money_cents)
+      #   responses.push create_subscriptions(payment_source, gateway_options, plan_ids)
+      # end
       responses.push call_purchase(decreased_amount, payment_source, gateway_options)
       responses.last # default solidus UI supports only 1 response for now
     end
