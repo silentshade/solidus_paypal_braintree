@@ -24,7 +24,7 @@ module SolidusPaypalBraintree
             braintree_subscription_id: braintree_subscription.id,
             status: tr.status,
             amount: tr.amount,
-            payment_method: SolidusPaypalBraintree::SubscriptionGateway
+            payment_method: SolidusPaypalBraintree::SubscriptionGateway.name
           }
         end
         SolidusPaypalBraintree::Transaction.upsert_all(attrs, unique_by: :braintree_id)
