@@ -57,7 +57,7 @@ module SolidusPaypalBraintree
     def transaction_params
       params.require(:transaction)
         .permit(PERMITTED_BRAINTREE_TRANSACTION_PARAMS)
-        .merge({ payment_method: payment_method })
+        .merge({ payment_method: payment_method, imported: true })
     end
 
     def payment_method

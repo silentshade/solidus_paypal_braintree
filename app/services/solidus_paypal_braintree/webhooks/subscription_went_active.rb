@@ -3,6 +3,7 @@ module SolidusPaypalBraintree
     class SubscriptionWentActive
       include Interactor
       include BaseService
+      include SubscriptionMethods
 
       requires :braintree_subscription
       attr_reader :subscription
@@ -13,10 +14,6 @@ module SolidusPaypalBraintree
       end
 
       private
-
-      def find_subscription
-        @subscription = SolidusPaypalBraintree::Subscription.find_by!(braintree_id: braintree_subscription.id)
-      end
 
       def update_subscription
         subscription.update! status: braintree_subscription.status,

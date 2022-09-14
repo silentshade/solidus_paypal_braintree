@@ -3,14 +3,31 @@ module SolidusPaypalBraintree
     class SubscriptionChargedSuccessfully
       include Interactor
       include BaseService
+      include SubscriptionMethods
 
       requires :braintree_subscription
+      attr_reader :subscription
 
       # TODO: Create transactions
       def call
-        puts braintree_subscription.id
-        puts braintree_subscription.plan_id
-        puts braintree_subscription.price
+        find_subscription
+        create_transactions
+      end
+
+      private
+
+      def create_transactions
+        attrs = braintree_subscription.transactions.map do |tr|
+          {
+            subscription_id: subscription.id,
+            braintree_id: tr.id,
+            braintree_subscription_id: braintree_subscription.id,
+            status: tr.status,
+            amount: tr.amount,
+            payment_method: SolidusPaypalBraintree::SubscriptionGateway
+          }
+        end
+        SolidusPaypalBraintree::Transaction.upsert_all(attrs, unique_by: :braintree_id)
       end
     end
   end

@@ -3,18 +3,29 @@
 require 'active_model'
 
 module SolidusPaypalBraintree
-  class Transaction
-    include ActiveModel::Model
+  class Transaction < ApplicationRecord
+    attr_accessor :nonce, :payment_method, :payment_type, :paypal_funding_source, :address, :email, :phone, :imported
 
-    attr_accessor :nonce, :payment_method, :payment_type, :paypal_funding_source, :address, :email, :phone
+    belongs_to :subscription, class_name: 'SolidusPaypalBraintree::Subscription', optional: true, foreign_key: :subscription_id
 
-    validates :nonce, presence: true
+    with_options(if: -> { imported }) do
+      validates :nonce, presence: true
+      validates :payment_type, presence: true
+      validates :email, presence: true
+    end
+
+    with_options(unless: -> { imported} ) do
+      validates :subscription_id, presence: true
+      validates :braintree_id, presence: true, uniqueness: true
+      validates :braintree_subscription_id, presence: true
+      validates :status, presence: true
+      validates :amount, numericality: { greater_than: 0 }
+    end
+
     validates :payment_method, presence: true
-    validates :payment_type, presence: true
-    validates :email, presence: true
 
     validate do
-      unless payment_method.is_a? SolidusPaypalBraintree::Gateway
+      unless [SolidusPaypalBraintree::Gateway, SolidusPaypalBraintree::SubscriptionGateway].include?(payment_method)
         errors.add(:payment_method, 'Must be braintree')
       end
       if address && !address.valid?
