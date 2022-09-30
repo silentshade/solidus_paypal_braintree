@@ -24,7 +24,7 @@ module SolidusPaypalBraintree
       end
 
       def build_failure(result)
-        transaction = result.transaction || result.subscription.transaction.first
+        transaction = result.transaction || result.subscription&.transaction&.first
         options = response_options(transaction).update(
           # For error responses we want to have the CVV code
           cvv_result: transaction&.cvv_response_code
